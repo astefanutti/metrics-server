@@ -13,6 +13,8 @@ metadata:
   labels:
     k8s-app: metrics-server
 spec:
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       k8s-app: metrics-server
@@ -29,7 +31,9 @@ spec:
         emptyDir: {}
       containers:
       - name: metrics-server
-        image: k8s.gcr.io/metrics-server-amd64:v0.3.0
+        image: localhost:5000/metrics-server-amd64:latest
+        args:
+        - --kubelet-insecure-tls
         imagePullPolicy: Always
         volumeMounts:
         - name: tmp-dir

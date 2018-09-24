@@ -16,6 +16,9 @@ all: _output/$(ARCH)/metrics-server
 ALL_ARCHITECTURES=amd64 arm arm64 ppc64le s390x
 ML_PLATFORMS=linux/amd64,linux/arm,linux/arm64,linux/ppc64le,linux/s390x
 
+OVERRIDE_IMAGE_NAME:=localhost:5000/metrics-server-amd64
+VERSION?=latest
+
 # Calculated Variables
 # ====================
 REPO_DIR:=$(shell pwd)
@@ -74,6 +77,10 @@ container-%: pkg/generated/openapi/zz_generated.openapi.go tmpdir
 
 	# run the actual build
 	docker build --pull -t $(IMAGE_NAME) $(TEMP_DIR)
+
+ifneq ($(OVERRIDE_IMAGE_NAME),)
+	docker tag $(PREFIX)/metrics-server-$(ARCH):$(VERSION) $(OVERRIDE_IMAGE_NAME)
+endif
 
 	# remove our TEMP_DIR, as needed
 	rm -rf $(TEMP_DIR)
@@ -144,4 +151,7 @@ endif
 # set up a temporary director when we need it
 # it's the caller's responsibility to clean it up
 tmpdir:
-	$(eval TEMP_DIR:=$(shell mktemp -d /tmp/metrics-server.XXXXXX))
+	# $(eval TEMP_DIR:=$(shell mktemp -d /tmp/metrics-server.XXXXXX))
+ifndef TEMP_DIR
+	$(eval TEMP_DIR:=$(shell pwd)/tmp)
+endif
